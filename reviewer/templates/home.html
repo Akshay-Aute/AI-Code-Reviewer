@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card shadow">
+
+    <div class="card-header bg-primary text-white">
+        <h3>Review Your Python Code</h3>
+    </div>
+
+    <div class="card-body">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-success">
+                Review Code
+            </button>
+
+        </form>
+
+        <hr>
+
+        {% if issues %}
+
+        <!-- Dashboard Cards -->
+        <div class="row mb-4">
+
+            <!-- Total Issues -->
+            <div class="col-md-3">
+                <div class="card bg-primary text-white shadow-sm">
+                    <div class="card-body text-center">
+                        <h5>Total Issues</h5>
+                        <h2>{{ total }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Syntax Errors -->
+            <div class="col-md-3">
+                <div class="card bg-danger text-white shadow-sm">
+                    <div class="card-body text-center">
+                        <h5>Syntax Errors</h5>
+                        <h2>{{ syntax }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PEP8 Issues -->
+            <div class="col-md-3">
+                <div class="card bg-warning shadow-sm">
+                    <div class="card-body text-center">
+                        <h5>PEP8 Issues</h5>
+                        <h2>{{ pep8 }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Score -->
+            <div class="col-md-3">
+                <div class="card bg-success text-white shadow-sm">
+                    <div class="card-body text-center">
+                        <h5>Quality Score</h5>
+                        <h2>{{ score }}%</h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Result Table -->
+        <h4 class="mb-3">Review Result</h4>
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+
+                <tr>
+                    <th>Line</th>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Suggestion</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for issue in issues %}
+
+                <tr>
+
+                    <td>{{ issue.line }}</td>
+
+                    <td>
+
+                        {% if issue.type == "Success" %}
+
+                        <span class="badge bg-success">
+                            {{ issue.type }}
+                        </span>
+
+                        {% elif issue.type == "Syntax Error" %}
+
+                        <span class="badge bg-danger">
+                            {{ issue.type }}
+                        </span>
+
+                        {% elif issue.type == "PEP8" %}
+
+                        <span class="badge bg-warning text-dark">
+                            {{ issue.type }}
+                        </span>
+
+                        {% else %}
+
+                        <span class="badge bg-secondary">
+                            {{ issue.type }}
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ issue.message }}</td>
+
+                    <td>{{ issue.suggestion|default:"-" }}</td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const textarea = document.querySelector("textarea");
+
+        if (textarea) {
+
+            const editor = CodeMirror.fromTextArea(textarea, {
+
+                mode: "python",
+                theme: "dracula",
+                lineNumbers: true,
+                indentUnit: 4,
+                tabSize: 4,
+                lineWrapping: true,
+                autoCloseBrackets: true,
+                matchBrackets: true
+
+            });
+
+            editor.setSize("100%", "450px");
+        }
+
+    });
+
+</script>
+
+{% endblock %}

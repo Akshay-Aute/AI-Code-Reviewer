@@ -1,179 +1,251 @@
 {% extends 'base.html' %}
-
 {% block content %}
-
-<div class="card shadow">
-
-    <div class="card-header bg-primary text-white">
-        <h3>Review Your Python Code</h3>
-    </div>
-
-    <div class="card-body">
-
-        <form method="POST">
-
-            {% csrf_token %}
-
-            {{ form.as_p }}
-
-            <button type="submit" class="btn btn-success">
-                Review Code
-            </button>
-
-        </form>
-
-        <hr>
-
-        {% if issues %}
-
-        <!-- Dashboard Cards -->
-        <div class="row mb-4">
-
-            <!-- Total Issues -->
-            <div class="col-md-3">
-                <div class="card bg-primary text-white shadow-sm">
-                    <div class="card-body text-center">
-                        <h5>Total Issues</h5>
-                        <h2>{{ total }}</h2>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- ================= LEFT PANEL ================= -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        🐍 Python Code Reviewer
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <!-- Code Editor -->
+                        <div class="mb-4">
+                            {{ form.code }}
+                        </div>
+                        <!-- File Upload -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                {{ form.python_file.label }}
+                            </label>
+                            {{ form.python_file }}
+                            <small class="text-muted d-block mt-2">
+                                Upload a Python (.py) file or paste code above.
+                            </small>
+                        </div>
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                🔍 Analyze Code
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                🗑 Clear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- ================= RIGHT PANEL ================= -->
+        <div class="col-lg-5">
+            {% if issues %}
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        📊 Analysis Summary
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Total Issues -->
+                        <div class="col-6">
+                            <div class="card card-summary bg-primary text-white shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="mb-2">
+                                        Total Issues
+                                    </h6>
+                                    <h2>{{ total }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Syntax Errors -->
+                        <div class="col-6">
+                            <div class="card card-summary bg-danger text-white shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="mb-2">
+                                        Syntax Errors
+                                    </h6>
+                                    <h2>{{ syntax }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- PEP8 Issues -->
+                        <div class="col-6">
+                            <div class="card card-summary bg-warning shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="mb-2">
+                                        PEP8 Issues
+                                    </h6>
+                                    <h2>{{ pep8 }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Quality Score -->
+                        <div class="col-6">
+                            <div class="card card-summary bg-success text-white shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="mb-2">
+                                        Quality Score
+                                    </h6>
+                                    <h2>{{ score }}%</h2>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Syntax Errors -->
-            <div class="col-md-3">
-                <div class="card bg-danger text-white shadow-sm">
-                    <div class="card-body text-center">
-                        <h5>Syntax Errors</h5>
-                        <h2>{{ syntax }}</h2>
-                    </div>
+            {% else %}
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        📊 Analysis Summary
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted mb-0">
+                        Submit Python code to view the analysis summary.
+                    </p>
                 </div>
             </div>
-
-            <!-- PEP8 Issues -->
-            <div class="col-md-3">
-                <div class="card bg-warning shadow-sm">
-                    <div class="card-body text-center">
-                        <h5>PEP8 Issues</h5>
-                        <h2>{{ pep8 }}</h2>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quality Score -->
-            <div class="col-md-3">
-                <div class="card bg-success text-white shadow-sm">
-                    <div class="card-body text-center">
-                        <h5>Quality Score</h5>
-                        <h2>{{ score }}%</h2>
-                    </div>
-                </div>
-            </div>
-
+            {% endif %}
         </div>
 
-        <!-- Result Table -->
-        <h4 class="mb-3">Review Result</h4>
-
-        <table class="table table-bordered table-hover">
-
-            <thead class="table-dark">
-
-                <tr>
-                    <th>Line</th>
-                    <th>Type</th>
-                    <th>Message</th>
-                    <th>Suggestion</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                {% for issue in issues %}
-
-                <tr>
-
-                    <td>{{ issue.line }}</td>
-
-                    <td>
-
-                        {% if issue.type == "Success" %}
-
-                        <span class="badge bg-success">
-                            {{ issue.type }}
-                        </span>
-
-                        {% elif issue.type == "Syntax Error" %}
-
-                        <span class="badge bg-danger">
-                            {{ issue.type }}
-                        </span>
-
-                        {% elif issue.type == "PEP8" %}
-
-                        <span class="badge bg-warning text-dark">
-                            {{ issue.type }}
-                        </span>
-
-                        {% else %}
-
-                        <span class="badge bg-secondary">
-                            {{ issue.type }}
-                        </span>
-
-                        {% endif %}
-
-                    </td>
-
-                    <td>{{ issue.message }}</td>
-
-                    <td>{{ issue.suggestion|default:"-" }}</td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-        {% endif %}
-
     </div>
+    <!-- ================= REVIEW RESULT ================= -->
+    {% if issues %}
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">
+                📋 Review Result
+            </h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="10%">Line</th>
+                        <th width="15%">Type</th>
+                        <th width="40%">Message</th>
+                        <th width="35%">Suggestion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr>
+                        <td>{{ issue.line }}</td>
+                        <td>
+                            {% if issue.type == "Success" %}
+                            <span class="badge bg-success">
+                                {{ issue.type }}
+                            </span>
+                            {% elif issue.type == "Syntax Error" %}
+                            <span class="badge bg-danger">
+                                {{ issue.type }}
+                            </span>
+                            {% elif issue.type == "PEP8" %}
+                            <span class="badge bg-warning text-dark">
+                                {{ issue.type }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">
+                                {{ issue.type }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ issue.message }}</td>
+                        <td>{{ issue.suggestion|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- ================= AUTO FIXED CODE ================= -->
+    {% if fixed_code %}
+    <div class="card shadow border-0 mt-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                ✨ Auto Fixed Code
+            </h4>
+        </div>
+        <div class="card-body">
+            <textarea id="fixedCode" name="fixed_code" class="form-control" rows="12"
+                readonly>{{ fixed_code }}</textarea>
+            <div class="mt-3">
+                <button type="button" class="btn btn-primary" onclick="copyCode()">
+                    📋 Copy Fixed Code
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    <footer class="text-center mt-5 mb-3 text-muted">
 
+        Python Code Reviewer • Built with Django & Python
+
+    </footer>
 </div>
-
 {% endblock %}
-
-
 {% block scripts %}
-
 <script>
-
     document.addEventListener("DOMContentLoaded", function () {
-
-        const textarea = document.querySelector("textarea");
-
-        if (textarea) {
-
-            const editor = CodeMirror.fromTextArea(textarea, {
-
+        // ==========================
+        // Main Code Editor
+        // ==========================
+        const codeTextarea = document.querySelector("textarea[name='code']");
+        if (codeTextarea) {
+            window.editor = CodeMirror.fromTextArea(codeTextarea, {
                 mode: "python",
                 theme: "dracula",
                 lineNumbers: true,
+                lineWrapping: true,
                 indentUnit: 4,
                 tabSize: 4,
-                lineWrapping: true,
                 autoCloseBrackets: true,
-                matchBrackets: true
-
+                matchBrackets: true,
             });
-
-            editor.setSize("100%", "450px");
+            window.editor.setSize("100%", "520px");
         }
-
+        // ==========================
+        // Read Only Fixed Code Editor
+        // ==========================
+        const fixedTextarea = document.querySelector(
+            "textarea[name='fixed_code']"
+        );
+        if (fixedTextarea) {
+            const fixedEditor = CodeMirror.fromTextArea(
+                fixedTextarea,
+                {
+                    mode: "python",
+                    theme: "dracula",
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    readOnly: true
+                }
+            );
+            fixedEditor.setSize("100%", "300px");
+        }
     });
 
+    // ==========================
+    // Copy Fixed Code
+    // ==========================
+    function copyCode() {
+        const textarea = document.getElementById("fixedCode");
+        if (!textarea) return;
+        navigator.clipboard.writeText(textarea.value)
+            .then(() => {
+                alert("✅ Fixed code copied successfully!");
+            })
+            .catch((err) => {
+                console.error(err);
+                alert("❌ Failed to copy code.");
+            });
+    }
 </script>
-
 {% endblock %}

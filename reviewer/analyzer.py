@@ -1,6 +1,7 @@
 import ast
 import tempfile
 import pycodestyle
+import autopep8
 
 
 PEP8_HELP = {
@@ -99,3 +100,10 @@ def analyze_code(code):
         })
 
     return issues
+
+
+def fix_code(code):
+    """
+    Automatically format Python code.
+    """
+    return autopep8.fix_code(code)

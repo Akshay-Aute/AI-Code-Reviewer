@@ -14,6 +14,7 @@ def home(request):
     syntax = 0
     pep8 = 0
     score = 100  # Default score
+    fixed_code = ""
 
     if request.method == "POST":
 
